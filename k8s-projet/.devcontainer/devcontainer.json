@@ -1,4 +1,8 @@
 {
-  "name": "Mon Environnement K3s",
-  "postStartCommand": "bash ./tunnels.sh"
+  "name": "Mon Environnement K3s HA",
+  "image": "mcr.microsoft.com/devcontainers/base:ubuntu",
+  "postStartCommand": "bash ./tunnels.sh",
+  "remoteEnv": {
+    "KUBECONFIG": "/etc/rancher/k3s/k3s.yaml"
+  }
 }
