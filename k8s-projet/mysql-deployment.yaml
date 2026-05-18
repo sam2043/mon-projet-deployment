@@ -22,29 +22,45 @@ spec:
       labels:
         app: mysql
     spec:
+      nodeSelector:
+        node-role: app-2             # Fixé sur worker-app-2
       containers:
       - image: mysql:8.0
         name: mysql
-        # 🚀 NOUVEAU : On sécurise la consommation de la RAM et du CPU
         resources:
           requests:
-            memory: "256Mi"   # Minimum garanti pour que MySQL s'allume
+            memory: "256Mi"
             cpu: "100m"
           limits:
-            memory: "1Gi"     # On le laisse monter jusqu'à 1 Go maximum
-            cpu: "500m"       # Limite la consommation du processeur
+            memory: "1Gi"
+            cpu: "500m"
         env:
         - name: MYSQL_ROOT_PASSWORD
-          value: "tK5aE!aE(_FU4_dv"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: root-password
         - name: MYSQL_DATABASE
           value: bd_final
         - name: MYSQL_USER
-          value: "appuser"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-user
         - name: MYSQL_PASSWORD
-          value: "apppassword"
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-password
         ports:
         - containerPort: 3306
           name: mysql
+        readinessProbe:
+          exec:
+            command: ["mysqladmin", "ping", "-h", "localhost"]
+          initialDelaySeconds: 20
+          periodSeconds: 10
+          failureThreshold: 3
         volumeMounts:
         - name: mysql-persistent-storage
           mountPath: /var/lib/mysql
