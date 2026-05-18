@@ -3,9 +3,9 @@ kind: Ingress
 metadata:
   name: web-ingress
   annotations:
-    # Optionnel, mais utile sur Codespaces pour éviter certains blocages
     traefik.ingress.kubernetes.io/router.entrypoints: web
 spec:
+  ingressClassName: traefik
   rules:
   - http:
       paths:
@@ -14,5 +14,19 @@ spec:
         backend:
           service:
             name: web-service
+            port:
+              number: 80
+      - path: /argocd
+        pathType: Prefix
+        backend:
+          service:
+            name: argocd-server
+            port:
+              number: 80
+      - path: /grafana
+        pathType: Prefix
+        backend:
+          service:
+            name: kube-stack-grafana
             port:
               number: 80
