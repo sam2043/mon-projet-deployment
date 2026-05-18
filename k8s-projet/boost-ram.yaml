@@ -1,11 +1,28 @@
 prometheus:
   prometheusSpec:
+    nodeSelector:
+      node-role: monitoring
+    tolerations:
+    - key: "dedicated"
+      operator: "Equal"
+      value: "monitoring"
+      effect: "NoSchedule"
     resources:
       requests:
         memory: "512Mi"
       limits:
-        memory: "2Gi" # On donne jusqu'à 2 Go à Prometheus (très gourmand)
+        memory: "2Gi"
+
 grafana:
+  nodeSelector:
+    node-role: monitoring
+  tolerations:
+  - key: "dedicated"
+    operator: "Equal"
+    value: "monitoring"
+    effect: "NoSchedule"
   resources:
+    requests:
+      memory: "128Mi"
     limits:
       memory: "1Gi"
