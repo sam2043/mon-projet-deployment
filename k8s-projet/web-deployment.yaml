@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: web
 spec:
-  replicas: 1
+  replicas: 2                        # 2 réplicas répartis sur worker-app-1 et app-2
   selector:
     matchLabels:
       app: web
@@ -12,30 +12,48 @@ spec:
       labels:
         app: web
     spec:
+      nodeSelector:
+        node-role: app-1             # Fixé sur worker-app-1
       containers:
       - name: web
         image: kokafanta24/app-web:5ed5c1e
         imagePullPolicy: Always
-        # 🚀 NOUVEAU : Le garde-fou pour la RAM et le CPU
         resources:
           requests:
-            memory: "64Mi"    # Très léger au démarrage
+            memory: "64Mi"
             cpu: "50m"
           limits:
-            memory: "256Mi"   # Limite maximale pour éviter les fuites de mémoire
+            memory: "256Mi"
             cpu: "250m"
         ports:
         - containerPort: 80
         env:
         - name: DB_HOST
-          value: "mysql" # Se connecte au nom du service Kubernetes
+          value: "mysql"
+        - name: DB_USER
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-user
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: mysql-secret
+              key: app-password
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          failureThreshold: 3
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: web-service
 spec:
-  type: LoadBalancer # Très bien pour K3s (utilise Klipper LB par défaut)
+  type: LoadBalancer
   selector:
     app: web
   ports:
